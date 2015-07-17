@@ -8,12 +8,12 @@
     "Jake Dempsey <angelo0000@gmail.com>",
     "Alban Escalier (DaWyz)"
   ],
-  "name": "mongoose-path-tree",
-  "description": "Maintaied version of materialized path hierarchy for mongoose with reparent option",
-  "homepage": "https://github.com/swayf/mongoose-path-tree",
+  "name": "eflex-mongoose-path-tree",
+  "description": "Maintained version of materialized path hierarchy for mongoose with reparent option",
+  "homepage": "https://github.com/eflexsystems/mongoose-path-tree",
   "repository": {
     "type": "git",
-    "url": "git://github.com/swayf/mongoose-path-tree.git"
+    "url": "git://github.com/eflexsystems/mongoose-path-tree.git"
   },
   "main": "index.js",
   "version": "1.3.5",
