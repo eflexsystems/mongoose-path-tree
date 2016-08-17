@@ -102,7 +102,7 @@ describe('tree tests', function () {
 
                         should.not.exist(err);
                         users.length.should.equal(5);
-                        _.pluck(users, 'name').should.not.include('Emily');
+                        _.map(users, 'name').should.not.containEql('Emily');
                         done();
                     });
                 });
@@ -124,7 +124,7 @@ describe('tree tests', function () {
                         should.not.exist(err);
 
                         users.length.should.equal(3);
-                        _.pluck(users, 'name').should.include('Adam').and.include('Bob');
+                        _.map(users, 'name').should.containEql('Adam').and.containEql('Bob');
                         done();
                     });
                 });
@@ -196,7 +196,7 @@ describe('tree tests', function () {
 
                     should.not.exist(err);
                     users.length.should.equal(1);
-                    _.pluck(users, 'name').should.include('Bob');
+                    _.map(users, 'name').should.containEql('Bob');
                     done();
                 });
             });
@@ -213,7 +213,7 @@ describe('tree tests', function () {
                     should.not.exist(err);
 
                     users.length.should.equal(2);
-                    _.pluck(users, 'name').should.include('Bob').and.include('Carol');
+                    should(_.map(users, 'name')).containEql('Bob').and.containEql('Carol');
                     done();
                 });
             });
@@ -230,7 +230,7 @@ describe('tree tests', function () {
                     should.not.exist(err);
 
                     users.length.should.equal(2);
-                    _.pluck(users, 'name').should.include('Dann').and.include('Emily');
+                    _.map(users, 'name').should.containEql('Dann').and.containEql('Emily');
                     done();
                 });
             });
@@ -247,8 +247,8 @@ describe('tree tests', function () {
                     should.not.exist(err);
 
                     users.length.should.equal(2);
-                    users[0].should.not.have.property('parent');
-                    _.pluck(users, 'name').should.include('Dann').and.include('Emily');
+                    should.not.exist(users[0].parent);
+                    _.map(users, 'name').should.containEql('Dann').and.containEql('Emily');
                     done();
                 });
             });
@@ -266,7 +266,7 @@ describe('tree tests', function () {
 
                     users.length.should.equal(2);
                     users[0].name.should.equal('Emily');
-                    _.pluck(users, 'name').should.include('Dann').and.include('Emily');
+                    _.map(users, 'name').should.containEql('Dann').and.containEql('Emily');
                     done();
                 });
             });
@@ -299,7 +299,7 @@ describe('tree tests', function () {
 
                     should.not.exist(err);
                     ancestors.length.should.equal(2);
-                    _.pluck(ancestors, 'name').should.include('Carol').and.include('Adam');
+                    _.map(ancestors, 'name').should.containEql('Carol').and.containEql('Adam');
                     done();
                 });
             });
@@ -314,9 +314,9 @@ describe('tree tests', function () {
                     should.not.exist(err);
 
                     ancestors.length.should.equal(2);
-                    ancestors[0].should.not.have.property('parent');
+                    should.not.exist(ancestors[0].parent);
                     ancestors[0].should.have.property('name');
-                    _.pluck(ancestors, 'name').should.include('Carol').and.include('Adam');
+                    _.map(ancestors, 'name').should.containEql('Carol').and.containEql('Adam');
                     done();
                 });
             });
@@ -333,7 +333,7 @@ describe('tree tests', function () {
                     ancestors.length.should.equal(2);
                     ancestors[0].name.should.equal('Carol');
                     should.not.exist(ancestors[0].getAncestors);
-                    _.pluck(ancestors, 'name').should.include('Carol').and.include('Adam');
+                    _.map(ancestors, 'name').should.containEql('Carol').and.containEql('Adam');
                     done();
                 });
             });

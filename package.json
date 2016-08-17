@@ -20,14 +20,14 @@
   "engine": "node >= 0.8.0",
   "dependencies": {
     "mongoose": "^4.0.3",
-    "stream-worker": "0.x.x"
+    "stream-worker": "^2.0.1"
   },
   "devDependencies": {
-    "async": "0.x.x",
-    "should": "1.x.x",
-    "lodash": "2.x.x",
-    "mocha": "1.x.x",
-    "shortid": "2.0.0"
+    "async": "^2.0.1",
+    "should": "^11.1.0",
+    "lodash": "^4.15.0",
+    "mocha": "^3.0.2",
+    "shortid": "^2.2.6"
   },
   "directories": {
     "test": "test"
