@@ -19,6 +19,7 @@
   "version": "2.1.0",
   "engine": "node >= 0.8.0",
   "dependencies": {
+    "bluebird": "^3.5.0",
     "mongoose": "^4.0.3",
     "stream-worker": "^2.0.1"
   },
