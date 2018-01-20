@@ -23,7 +23,6 @@ describe('tree tests', function () {
   if (process.env.MONGOOSE_TREE_SHORTID === '1') {
     userSchema._id = {
       type: String,
-      unique: true,
       'default': function(){
         return shortId.generate();
       }

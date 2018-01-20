@@ -19,7 +19,7 @@
   "version": "4.0.1",
   "engine": "node >= 0.8.0",
   "dependencies": {
-    "mongoose": "^4.0.3",
+    "mongoose": "^5.0.1",
     "stream-worker": "^2.0.1"
   },
   "devDependencies": {
