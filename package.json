@@ -1,5 +1,6 @@
 {
-  "author": "Brian Kirchoff <briankircho@gmail.com>",
+  "name": "@eflexsystems/mongoose-path-tree",
+  "author": "Jacob Jewell <jacobjewell@eflexsystems.com>",
   "contributors": [
     "Lourenzo Ferreira <lourenzo@gmail.com> (http://lourenzo.blog.br)",
     "Franck Tab <franck.tab@gmail.com>",
@@ -8,8 +9,7 @@
     "Jake Dempsey <angelo0000@gmail.com>",
     "Alban Escalier (DaWyz)"
   ],
-  "name": "eflex-mongoose-path-tree",
-  "description": "Maintained version of materialized path hierarchy for mongoose with reparent option",
+  "description": "Materialized path hierarchy for mongoose with reparent option",
   "homepage": "https://github.com/eflexsystems/mongoose-path-tree",
   "repository": {
     "type": "git",
