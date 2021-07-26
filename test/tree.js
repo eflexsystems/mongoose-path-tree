@@ -1,402 +1,162 @@
-var Mongoose = require('mongoose');
-var Tree = require('../lib/tree');
-var Async = require('async');
-var should = require('should');
-var _ = require('lodash');
-var shortId = require('shortid');
+const Mongoose = require('mongoose');
+const Tree = require('../lib/tree');
+const should = require('should');
+const _ = require('lodash');
 
-var Schema = Mongoose.Schema;
+const Schema = Mongoose.Schema;
 
 Mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/mongoose-path-tree');
 
-
 describe('tree tests', function () {
-
-  var userSchema = {
+  const userSchema = {
     name: String
   };
 
-  var pluginOptions = {
-    pathSeparator: '.'
-  };
-
-  if (process.env.MONGOOSE_TREE_SHORTID === '1') {
-    userSchema._id = {
-      type: String,
-      'default': function(){
-        return shortId.generate();
-      }
-    };
-
-    pluginOptions.idType = String
-  }
-
   // Schema for tests
-  var UserSchema = new Schema(userSchema);
-  UserSchema.plugin(Tree, pluginOptions);
-  var User = Mongoose.model('User', UserSchema);
+  const UserSchema = new Schema(userSchema);
+  UserSchema.plugin(Tree);
+  const User = Mongoose.model('User', UserSchema);
 
   // Set up the fixture
-  beforeEach(function (done) {
+  beforeEach(async function () {
+    await User.deleteMany({});
+    const adam = new User({name: 'Adam' });
+    const eden = new User({name: 'Eden' });
+    const bob = new User({name: 'Bob', parent: adam });
+    const carol = new User({name: 'Carol', parent: adam });
+    const dann = new User({name: 'Dann', parent: carol });
+    const emily = new User({name: 'Emily', parent: dann });
 
-    User.remove({}, function (err) {
-
-      should.not.exist(err);
-
-      var adam = new User({name: 'Adam' });
-      var eden = new User({name: 'Eden' });
-      var bob = new User({name: 'Bob', parent: adam });
-      var carol = new User({name: 'Carol', parent: adam });
-      var dann = new User({name: 'Dann', parent: carol });
-      var emily = new User({name: 'Emily', parent: dann });
-
-      Async.forEachSeries([adam, bob, carol, dann, emily, eden], function (doc, cb) {
-
-        doc.save(cb);
-      }, done);
-    });
+    for (const doc of [adam, bob, carol, dann, emily, eden]) {
+      await doc.save();
+    }
   });
-
 
   describe('adding documents', function () {
+    it('should set parent id and path', async function () {
+      const users = await User.find({});
 
-    it('should set parent id and path', function (done) {
-
-      User.find({}, function (err, users) {
-
-        should.not.exist(err);
-
-        var names = {};
-        users.forEach(function (user) {
-
-          names[user.name] = user;
-        });
-
-        should.not.exist(names['Adam'].parent);
-        names['Bob'].parent.toString().should.equal(names['Adam']._id.toString());
-        names['Carol'].parent.toString().should.equal(names['Adam']._id.toString());
-        names['Dann'].parent.toString().should.equal(names['Carol']._id.toString());
-        names['Emily'].parent.toString().should.equal(names['Dann']._id.toString());
-
-        var expectedPath = [names['Adam']._id, names['Carol']._id, names['Dann']._id].join('.');
-        names['Dann'].path.should.equal(expectedPath);
-
-        done();
+      const names = {};
+      users.forEach(function (user) {
+        names[user.name] = user;
       });
+
+      should.not.exist(names['Adam'].parent);
+      names['Bob'].parent.toString().should.equal(names['Adam']._id.toString());
+      names['Carol'].parent.toString().should.equal(names['Adam']._id.toString());
+      names['Dann'].parent.toString().should.equal(names['Carol']._id.toString());
+      names['Emily'].parent.toString().should.equal(names['Dann']._id.toString());
+
+      const expectedPath = [names['Adam']._id, names['Carol']._id, names['Dann']._id].join('#');
+      names['Dann'].path.should.equal(expectedPath);
     });
   });
-
 
   describe('removing document', function () {
+    it('should remove leaf nodes', async function () {
+      const emily = await User.findOne({ name: 'Emily' });
 
-    it('should remove leaf nodes', function (done) {
+      await emily.remove();
 
-      User.findOne({ name: 'Emily' }, function (err, emily) {
+      const users = await User.find();
 
-        emily.remove(function (err) {
-
-          should.not.exist(err);
-
-          User.find(function (err, users) {
-
-            should.not.exist(err);
-            users.length.should.equal(5);
-            _.map(users, 'name').should.not.containEql('Emily');
-            done();
-          });
-        });
-      });
+      users.length.should.equal(5);
+      _.map(users, 'name').should.not.containEql('Emily');
     });
 
-    it('should remove all children', function (done) {
+    it('should remove all children', async function () {
+      const user = await User.findOne({ name: 'Carol' });
 
-      User.findOne({ name: 'Carol' }, function (err, user) {
+      await user.remove();
+      const users = await User.find();
 
-        should.not.exist(err);
-
-        user.remove(function (err) {
-
-          should.not.exist(err);
-
-          User.find(function (err, users) {
-
-            should.not.exist(err);
-
-            users.length.should.equal(3);
-            _.map(users, 'name').should.containEql('Adam').and.containEql('Bob');
-            done();
-          });
-        });
-      });
+      users.length.should.equal(3);
+      _.map(users, 'name').should.containEql('Adam').and.containEql('Bob');
     });
   });
-
-
-  function checkPaths(done) {
-    User.find({}, function (err, users) {
-
-      should.not.exist(err);
-
-      var ids = {};
-      users.forEach(function (user) {
-
-        ids[user._id] = user;
-      });
-
-      users.forEach(function (user) {
-
-        if (!user.parent) {
-          return;
-        }
-        should.exist(ids[user.parent]);
-        user.path.should.equal(ids[user.parent].path + "." + user._id);
-      });
-
-      done();
-    });
-  }
-
-
-  describe('moving documents', function () {
-
-    it('should change children paths', function (done) {
-
-      User.find({}, function (err, users) {
-        should.not.exist(err);
-
-        var names = {};
-        users.forEach(function (user) {
-
-          names[user.name] = user;
-        });
-
-        var carol = names['Carol'];
-        var bob = names['Bob'];
-
-        carol.parent = bob;
-        carol.save(function (err) {
-
-          should.not.exist(err);
-          checkPaths(done);
-        });
-      });
-    });
-  });
-
 
   describe('get children', function () {
+    it('should return immediate children with filters', async function () {
+      const adam = await User.findOne({name: 'Adam'});
+      const users = await adam.getChildren({name: 'Bob'});
 
-    it('should return immediate children with filters', function (done) {
-
-      User.findOne({name: 'Adam'}, function (err, adam) {
-
-        should.not.exist(err);
-        adam.getChildren({name: 'Bob'}, function (err, users) {
-
-          should.not.exist(err);
-          users.length.should.equal(1);
-          _.map(users, 'name').should.containEql('Bob');
-          done();
-        });
-      });
+      users.length.should.equal(1);
+      _.map(users, 'name').should.containEql('Bob');
     });
 
-    it('should return immediate children', function (done) {
+    it('should return immediate children', async function () {
+      const adam = await User.findOne({name: 'Adam'});
+      const users = await adam.getChildren();
 
-      User.findOne({name: 'Adam'}, function (err, adam) {
-
-        should.not.exist(err);
-
-        adam.getChildren(function (err, users) {
-
-          should.not.exist(err);
-
-          users.length.should.equal(2);
-          should(_.map(users, 'name')).containEql('Bob').and.containEql('Carol');
-          done();
-        });
-      });
+      users.length.should.equal(2);
+      should(_.map(users, 'name')).containEql('Bob').and.containEql('Carol');
     });
 
-    it('should return recursive children', function (done) {
+    it('should return recursive children', async function () {
+      const carol = await User.findOne({ name: 'Carol' });
+      const users = await carol.getChildren({}, null, {}, true);
 
-      User.findOne({ 'name': 'Carol' }, function (err, carol) {
-
-        should.not.exist(err);
-
-        carol.getChildren(true, function (err, users) {
-
-          should.not.exist(err);
-
-          users.length.should.equal(2);
-          _.map(users, 'name').should.containEql('Dann').and.containEql('Emily');
-          done();
-        });
-      });
+      users.length.should.equal(2);
+      _.map(users, 'name').should.containEql('Dann').and.containEql('Emily');
     });
 
-    it('should return children with only name and _id fields', function (done) {
+    it('should return children with only name and _id fields', async function () {
+      const carol = await User.findOne({ name: 'Carol' });
+      const users = await carol.getChildren({}, 'name', {}, true);
 
-      User.findOne({ 'name': 'Carol' }, function (err, carol) {
-
-        should.not.exist(err);
-
-        carol.getChildren({}, 'name', true, function (err, users) {
-
-          should.not.exist(err);
-
-          users.length.should.equal(2);
-          should.not.exist(users[0].parent);
-          _.map(users, 'name').should.containEql('Dann').and.containEql('Emily');
-          done();
-        });
-      });
+      users.length.should.equal(2);
+      should.not.exist(users[0].parent);
+      _.map(users, 'name').should.containEql('Dann').and.containEql('Emily');
     });
 
-    it('should return children sorted on name', function (done) {
+    it('should return children sorted on name', async function () {
+      const carol = await User.findOne({ name: 'Carol' });
+      const users = await carol.getChildren({}, null, {sort: {name: -1}}, true);
 
-      User.findOne({ 'name': 'Carol' }, function (err, carol) {
-
-        should.not.exist(err);
-
-        carol.getChildren({}, null, {sort: {name: -1}}, true, function (err, users) {
-
-          should.not.exist(err);
-
-          users.length.should.equal(2);
-          users[0].name.should.equal('Emily');
-          _.map(users, 'name').should.containEql('Dann').and.containEql('Emily');
-          done();
-        });
-      });
+      users.length.should.equal(2);
+      users[0].name.should.equal('Emily');
+      _.map(users, 'name').should.containEql('Dann').and.containEql('Emily');
     });
   });
-
 
   describe('level virtual', function () {
+    it('should equal the number of ancestors', async function () {
+      const dann = await User.findOne({ name: 'Dann' });
 
-    it('should equal the number of ancestors', function (done) {
-
-      User.findOne({ 'name': 'Dann' }, function (err, dann) {
-
-        should.not.exist(err);
-
-        dann.level.should.equal(3);
-        done();
-      });
+      dann.level.should.equal(3);
     });
   });
-
 
   describe('get ancestors', function () {
+    it('should return ancestors', async function () {
+      const dann = await User.findOne({ name: 'Dann' });
+      const ancestors = await dann.getAncestors();
 
-    it('should return ancestors', function (done) {
-
-      User.findOne({ 'name': 'Dann' }, function (err, dann) {
-
-        dann.getAncestors(function (err, ancestors) {
-
-          should.not.exist(err);
-          ancestors.length.should.equal(2);
-          _.map(ancestors, 'name').should.containEql('Carol').and.containEql('Adam');
-          done();
-        });
-      });
+      ancestors.length.should.equal(2);
+      _.map(ancestors, 'name').should.containEql('Carol').and.containEql('Adam');
     });
 
 
-    it('should return ancestors with only name and _id fields', function (done) {
+    it('should return ancestors with only name and _id fields', async function () {
+      const dann = await User.findOne({ name: 'Dann' });
+      const ancestors = await dann.getAncestors({}, 'name');
 
-      User.findOne({ 'name': 'Dann' }, function (err, dann) {
-
-        dann.getAncestors({}, 'name', function (err, ancestors) {
-          should.not.exist(err);
-
-          ancestors.length.should.equal(2);
-          should.not.exist(ancestors[0].parent);
-          ancestors[0].should.have.property('name');
-          _.map(ancestors, 'name').should.containEql('Carol').and.containEql('Adam');
-          done();
-        });
-      });
+      ancestors.length.should.equal(2);
+      should.not.exist(ancestors[0].parent);
+      ancestors[0].should.have.property('name');
+      _.map(ancestors, 'name').should.containEql('Carol').and.containEql('Adam');
     });
 
 
-    it('should return ancestors sorted on name and without wrappers', function (done) {
+    it('should return ancestors sorted on name and without wrappers', async function () {
+      const dann = await User.findOne({ name: 'Dann' });
 
-      User.findOne({ 'name': 'Dann' }, function (err, dann) {
+      const ancestors = await dann.getAncestors({}, null, {sort: {name: -1}, lean: 1});
 
-        dann.getAncestors({}, null, {sort: {name: -1}, lean: 1}, function (err, ancestors) {
-          should.not.exist(err);
-
-          ancestors.length.should.equal(2);
-          ancestors[0].name.should.equal('Carol');
-          should.not.exist(ancestors[0].getAncestors);
-          _.map(ancestors, 'name').should.containEql('Carol').and.containEql('Adam');
-          done();
-        });
-      });
-    });
-  });
-
-
-  describe('get children tree', function () {
-
-    it("should return complete children tree", function (done) {
-
-      User.getChildrenTree(function (err, childrenTree) {
-
-        should.not.exist(err);
-        childrenTree.length.should.equal(2);
-
-        var adamTree = _.find(childrenTree, function(x){ return x.name == 'Adam'});
-        var edenTree = _.find(childrenTree, function(x){ return x.name == 'Eden'});
-
-        var bobTree = _.find(adamTree.children, function(x){ return x.name == 'Bob'});
-
-        var carolTree = _.find(adamTree.children, function(x){ return x.name == 'Carol'});
-        var danTree = _.find(carolTree.children, function(x){ return x.name == 'Dann'});
-        var emilyTree = _.find(danTree.children, function(x){ return x.name == 'Emily'});
-
-
-        adamTree.children.length.should.equal(2);
-        edenTree.children.length.should.equal(0);
-
-        bobTree.children.length.should.equal(0);
-
-        carolTree.children.length.should.equal(1);
-
-        danTree.children.length.should.equal(1);
-        danTree.children[0].name.should.equal('Emily');
-
-        emilyTree.children.length.should.equal(0);
-        done();
-      });
-    });
-
-    it("should return adam's children tree", function (done) {
-
-      User.findOne({ 'name': 'Adam' }, function (err, adam) {
-
-        adam.getChildrenTree(function (err, childrenTree) {
-
-          should.not.exist(err);
-
-          var bobTree = _.find(childrenTree, function(x){ return x.name == 'Bob'});
-
-          var carolTree = _.find(childrenTree, function(x){ return x.name == 'Carol'});
-          var danTree = _.find(carolTree.children, function(x){ return x.name == 'Dann'});
-          var emilyTree = _.find(danTree.children, function(x){ return x.name == 'Emily'});
-
-          bobTree.children.length.should.equal(0);
-          carolTree.children.length.should.equal(1);
-          danTree.children.length.should.equal(1);
-          danTree.children[0].name.should.equal('Emily');
-          emilyTree.children.length.should.equal(0);
-
-          done();
-        });
-      });
+      ancestors.length.should.equal(2);
+      ancestors[0].name.should.equal('Carol');
+      should.not.exist(ancestors[0].getAncestors);
+      _.map(ancestors, 'name').should.containEql('Carol').and.containEql('Adam');
     });
   });
 });

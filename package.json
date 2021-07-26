@@ -19,21 +19,18 @@
   "version": "6.0.1",
   "engine": "node >= 0.8.0",
   "dependencies": {
-    "mongoose": "^5.0.1",
-    "stream-worker": "^2.0.1"
+    "mongoose": "^5.13.3"
   },
   "devDependencies": {
-    "async": "^2.0.1",
     "should": "^11.1.0",
     "lodash": "^4.15.0",
-    "mocha": "^3.0.2",
-    "shortid": "^2.2.6"
+    "mocha": "^3.0.2"
   },
   "directories": {
     "test": "test"
   },
   "scripts": {
-    "test": "MONGOOSE_TREE_SHORTID=1 ./node_modules/.bin/mocha && MONGOOSE_TREE_SHORTID=0 ./node_modules/.bin/mocha"
+    "test": "./node_modules/.bin/mocha"
   },
   "keywords": [
     "mongoose",
