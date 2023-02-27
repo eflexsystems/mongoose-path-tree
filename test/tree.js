@@ -1,7 +1,6 @@
 const Mongoose = require('mongoose');
 const Tree = require('../lib/tree');
 const should = require('should');
-const _ = require('lodash');
 
 const Schema = Mongoose.Schema;
 
@@ -61,7 +60,7 @@ describe('tree tests', function () {
       const users = await User.find();
 
       users.length.should.equal(5);
-      _.map(users, 'name').should.not.containEql('Emily');
+      users.map(user => user.name).should.not.containEql('Emily');
     });
 
     it('should remove all children', async function () {
@@ -71,7 +70,7 @@ describe('tree tests', function () {
       const users = await User.find();
 
       users.length.should.equal(3);
-      _.map(users, 'name').should.containEql('Adam').and.containEql('Bob');
+      users.map(user => user.name).should.containEql('Adam').and.containEql('Bob');
     });
   });
 
@@ -81,7 +80,7 @@ describe('tree tests', function () {
       const users = await adam.getChildren({name: 'Bob'});
 
       users.length.should.equal(1);
-      _.map(users, 'name').should.containEql('Bob');
+      users.map(user => user.name).should.containEql('Bob');
     });
 
     it('should return immediate children', async function () {
@@ -89,7 +88,7 @@ describe('tree tests', function () {
       const users = await adam.getChildren();
 
       users.length.should.equal(2);
-      should(_.map(users, 'name')).containEql('Bob').and.containEql('Carol');
+      should(users.map(user => user.name)).containEql('Bob').and.containEql('Carol');
     });
 
     it('should return recursive children', async function () {
@@ -97,7 +96,7 @@ describe('tree tests', function () {
       const users = await carol.getChildren({}, null, {}, true);
 
       users.length.should.equal(2);
-      _.map(users, 'name').should.containEql('Dann').and.containEql('Emily');
+      users.map(user => user.name).should.containEql('Dann').and.containEql('Emily');
     });
 
     it('should return children with only name and _id fields', async function () {
@@ -106,7 +105,7 @@ describe('tree tests', function () {
 
       users.length.should.equal(2);
       should.not.exist(users[0].parent);
-      _.map(users, 'name').should.containEql('Dann').and.containEql('Emily');
+      users.map(user => user.name).should.containEql('Dann').and.containEql('Emily');
     });
 
     it('should return children sorted on name', async function () {
@@ -115,7 +114,7 @@ describe('tree tests', function () {
 
       users.length.should.equal(2);
       users[0].name.should.equal('Emily');
-      _.map(users, 'name').should.containEql('Dann').and.containEql('Emily');
+      users.map(user => user.name).should.containEql('Dann').and.containEql('Emily');
     });
   });
 
@@ -133,7 +132,7 @@ describe('tree tests', function () {
       const ancestors = await dann.getAncestors();
 
       ancestors.length.should.equal(2);
-      _.map(ancestors, 'name').should.containEql('Carol').and.containEql('Adam');
+      ancestors.map(ancestor => ancestor.name).should.containEql('Carol').and.containEql('Adam');
     });
 
 
@@ -144,7 +143,7 @@ describe('tree tests', function () {
       ancestors.length.should.equal(2);
       should.not.exist(ancestors[0].parent);
       ancestors[0].should.have.property('name');
-      _.map(ancestors, 'name').should.containEql('Carol').and.containEql('Adam');
+      ancestors.map(ancestor => ancestor.name).should.containEql('Carol').and.containEql('Adam');
     });
 
 
@@ -156,7 +155,7 @@ describe('tree tests', function () {
       ancestors.length.should.equal(2);
       ancestors[0].name.should.equal('Carol');
       should.not.exist(ancestors[0].getAncestors);
-      _.map(ancestors, 'name').should.containEql('Carol').and.containEql('Adam');
+      ancestors.map(ancestor => ancestor.name).should.containEql('Carol').and.containEql('Adam');
     });
   });
 });
