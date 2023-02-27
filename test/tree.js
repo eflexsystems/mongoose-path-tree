@@ -52,11 +52,11 @@ describe('tree tests', function () {
     });
   });
 
-  describe('removing document', function () {
+  describe('deleting documents', function () {
     it('should remove leaf nodes', async function () {
       const emily = await User.findOne({ name: 'Emily' });
 
-      await emily.remove();
+      await emily.deleteOne();
 
       const users = await User.find();
 
@@ -67,7 +67,7 @@ describe('tree tests', function () {
     it('should remove all children', async function () {
       const user = await User.findOne({ name: 'Carol' });
 
-      await user.remove();
+      await user.deleteOne();
       const users = await User.find();
 
       users.length.should.equal(3);
