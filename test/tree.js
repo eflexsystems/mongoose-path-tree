@@ -5,7 +5,7 @@ const _ = require('lodash');
 
 const Schema = Mongoose.Schema;
 
-Mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/mongoose-path-tree');
+Mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.01:27017/mongoose-path-tree');
 
 describe('tree tests', function () {
   const userSchema = {
