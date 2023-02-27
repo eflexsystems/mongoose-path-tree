@@ -16,8 +16,8 @@
     "url": "git://github.com/eflexsystems/mongoose-path-tree.git"
   },
   "main": "index.js",
-  "version": "8.0.0",
-  "engine": "node >= 0.8.0",
+  "version": "9.0.0",
+  "engine": "node >= 14.0.0",
   "dependencies": {
     "mongoose": "^7.0.0"
   },
