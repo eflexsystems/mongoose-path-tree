@@ -19,7 +19,7 @@
   "version": "10.0.0",
   "engine": "node >= 14.0.0",
   "dependencies": {
-    "mongoose": "^8.0.0"
+    "mongoose": "^9.0.0"
   },
   "devDependencies": {
     "should": "^13.2.3",
