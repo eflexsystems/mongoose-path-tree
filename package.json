@@ -19,11 +19,11 @@
   "version": "10.1.0",
   "engine": "node >= 14.0.0",
   "dependencies": {
-    "mongoose": "^9.0.0"
+    "mongoose": "^9.4.1"
   },
   "devDependencies": {
-    "should": "^13.2.3",
-    "mocha": "^10.2.0"
+    "mocha": "^10.2.0",
+    "should": "^13.2.3"
   },
   "directories": {
     "test": "test"
